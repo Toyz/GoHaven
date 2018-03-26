@@ -13,8 +13,12 @@ import (
 	"github.com/mewkiz/pkg/errutil"
 )
 
+func New() *WallHaven {
+	return &WallHaven{}
+}
+
 // Search searches for wallpapers based on the given query and search options.
-func Search(query string, options ...Option) (ids []ID, err error) {
+func (wh *WallHaven) Search(query string, options ...Option) (ids []ID, err error) {
 	// Parse search options.
 	values := make(url.Values)
 	if len(query) != 0 {
