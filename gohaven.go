@@ -78,7 +78,7 @@ func (id ID) Details() (details *ImageDetail, err error) {
 
 	return &ImageDetail{
 		Tags: tags,
-		URL:  url,
+		URL:  fmt.Sprintf("https:%s", url),
 	}, nil
 }
 
