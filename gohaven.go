@@ -6,9 +6,9 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"path"
 	"path/filepath"
 	"strconv"
-	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/mewkiz/pkg/errutil"
@@ -77,17 +77,20 @@ func (id ID) Details() (details *ImageDetail, err error) {
 	doc.Find("a.tagname").Each(f)
 
 	url, _ := doc.Find("img#wallpaper").Attr("src")
+	author := doc.Find("a#username").Text()
+	purity := doc.Find("label#purity").Text()
 
 	return &ImageDetail{
-		Tags: tags,
-		URL:  fmt.Sprintf("https:%s", url),
+		Tags:     tags,
+		URL:      fmt.Sprintf("https:%s", url),
+		Uploader: author,
+		Purity:   purity,
 	}, nil
 }
 
-func (detail *ImageDetail) Download(dir string) (path string, err error) {
-	download := func(url string) (path string, err error) {
-		parts := strings.Split("/", url)
-		path = filepath.Join(dir, parts[len(parts)-1])
+func (detail *ImageDetail) Download(dir string) (p string, err error) {
+	download := func(url string) (p string, err error) {
+		p = filepath.Join(dir, path.Base(url))
 
 		resp, err := http.Get(url)
 		if err != nil {
@@ -101,15 +104,15 @@ func (detail *ImageDetail) Download(dir string) (path string, err error) {
 		if err != nil {
 			return "", errutil.Err(err)
 		}
-		if err := ioutil.WriteFile(path, buf, 0644); err != nil {
+		if err := ioutil.WriteFile(p, buf, 0644); err != nil {
 			return "", errutil.Err(err)
 		}
-		return path, nil
+		return p, nil
 	}
 
-	path, _ = download(detail.URL)
+	p, _ = download(detail.URL)
 	if err != nil {
 		return "", errutil.Err(err)
 	}
-	return path, nil
+	return p, nil
 }

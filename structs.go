@@ -5,6 +5,8 @@ type WallHaven struct {
 }
 
 type ImageDetail struct {
-	Tags []string
-	URL  string
+	Tags     []string
+	URL      string
+	Uploader string
+	Purity   string
 }
