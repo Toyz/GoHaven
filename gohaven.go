@@ -33,7 +33,6 @@ func (wh *WallHaven) Search(query string, options ...Option) (ids []ID, err erro
 	// Send search request.
 	rawquery := values.Encode()
 	rawurl := "http://alpha.wallhaven.cc/search?" + rawquery
-	fmt.Println(rawurl)
 	doc, err := goquery.NewDocument(rawurl)
 	if err != nil {
 		return nil, errutil.Err(err)
@@ -62,6 +61,27 @@ func (wh *WallHaven) Search(query string, options ...Option) (ids []ID, err erro
 
 // ID represents the wallpaper ID of a specific wallpaper on wallhaven.cc.
 type ID int
+
+func (id ID) Details() (details *ImageDetail, err error) {
+	rawurl := fmt.Sprintf("https://alpha.wallhaven.cc/wallpaper/%d", id)
+	doc, err := goquery.NewDocument(rawurl)
+	if err != nil {
+		return nil, errutil.Err(err)
+	}
+	tags := make([]string, 0)
+
+	f := func(i int, s *goquery.Selection) {
+		tags = append(tags, s.Text())
+	}
+	doc.Find("a.tagname").Each(f)
+
+	url, _ := doc.Find("img#wallpaper").Attr("src")
+
+	return &ImageDetail{
+		Tags: tags,
+		URL:  url,
+	}, nil
+}
 
 func (id ID) Download(dir string) (path string, err error) {
 	download := func(ext string) (path string, err error) {
