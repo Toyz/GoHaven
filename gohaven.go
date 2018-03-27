@@ -77,14 +77,14 @@ func (id ID) Details() (details *ImageDetail, err error) {
 	doc.Find("a.tagname").Each(f)
 
 	url, _ := doc.Find("img#wallpaper").Attr("src")
-	author := doc.Find("a#username").Text()
-	purity := doc.Find("label#purity").Text()
+	author := doc.Find("a.username").Text()
+	// TODO: Fix this to add the purity rating
+	// purity, _ := doc.Find("input[checked='checked'][name='purity']").Attr("value")
 
 	return &ImageDetail{
 		Tags:     tags,
 		URL:      fmt.Sprintf("https:%s", url),
 		Uploader: author,
-		Purity:   purity,
 	}, nil
 }
 

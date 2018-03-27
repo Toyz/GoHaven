@@ -8,5 +8,6 @@ type ImageDetail struct {
 	Tags     []string
 	URL      string
 	Uploader string
-	Purity   string
+	// TODO: Fix purity system
+	// Purity   string
 }
