@@ -6,7 +6,9 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/mewkiz/pkg/errutil"
@@ -84,6 +86,9 @@ func (id ID) Details() (details *ImageDetail, err error) {
 
 func (detail *ImageDetail) Download(dir string) (path string, err error) {
 	download := func(url string) (path string, err error) {
+		parts := strings.Split("/", url)
+		path = filepath.Join(dir, parts[len(parts)-1])
+
 		resp, err := http.Get(url)
 		if err != nil {
 			return "", errutil.Err(err)
