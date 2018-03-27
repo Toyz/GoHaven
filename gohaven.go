@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"path/filepath"
 	"strconv"
 
 	"github.com/PuerkitoBio/goquery"
@@ -83,12 +82,9 @@ func (id ID) Details() (details *ImageDetail, err error) {
 	}, nil
 }
 
-func (id ID) Download(dir string) (path string, err error) {
-	download := func(ext string) (path string, err error) {
-		filename := fmt.Sprintf("wallhaven-%d.%s", id, ext)
-		path = filepath.Join(dir, filename)
-		rawurl := "http://wallpapers.wallhaven.cc/wallpapers/full/" + filename
-		resp, err := http.Get(rawurl)
+func (detail *ImageDetail) Download(dir string) (path string, err error) {
+	download := func(url string) (path string, err error) {
+		resp, err := http.Get(url)
 		if err != nil {
 			return "", errutil.Err(err)
 		}
@@ -106,14 +102,7 @@ func (id ID) Download(dir string) (path string, err error) {
 		return path, nil
 	}
 
-	// Try to download with jpg extension.
-	if path, err := download("jpg"); err == nil {
-		// Return early on success.
-		return path, nil
-	}
-
-	// Fallback to download with png extension.
-	path, err = download("png")
+	path, _ = download(detail.URL)
 	if err != nil {
 		return "", errutil.Err(err)
 	}
