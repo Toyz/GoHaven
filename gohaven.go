@@ -9,6 +9,7 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/mewkiz/pkg/errutil"
@@ -19,7 +20,7 @@ func New() *WallHaven {
 }
 
 // Search searches for wallpapers based on the given query and search options.
-func (wh *WallHaven) Search(query string, options ...Option) (ids []ID, err error) {
+func (wh *WallHaven) Search(query string, options ...Option) (ids []SearchResult, err error) {
 	// Parse search options.
 	values := make(url.Values)
 	if len(query) != 0 {
@@ -33,7 +34,9 @@ func (wh *WallHaven) Search(query string, options ...Option) (ids []ID, err erro
 
 	// Send search request.
 	rawquery := values.Encode()
-	rawurl := "http://alpha.wallhaven.cc/search?" + rawquery
+	rawurl := "https://alpha.wallhaven.cc/search?" + rawquery
+	fmt.Println(rawurl)
+
 	doc, err := goquery.NewDocument(rawurl)
 	if err != nil {
 		return nil, errutil.Err(err)
@@ -53,7 +56,26 @@ func (wh *WallHaven) Search(query string, options ...Option) (ids []ID, err erro
 			log.Print(errutil.Err(err))
 			return
 		}
-		ids = append(ids, ID(id))
+
+		imageURL, _ := s.Find("img").Attr("data-src")
+		thumbInfo := s.Find("div.thumb-info")
+
+		widthXheight := strings.Split(thumbInfo.Find("span.wall-res").Text(), "x")
+		width, _ := strconv.Atoi(strings.TrimSpace(widthXheight[0]))
+		height, _ := strconv.Atoi(strings.TrimSpace(widthXheight[1]))
+
+		favStringData := thumbInfo.Find("a.wall-favs").Text()
+		favorites, _ := strconv.Atoi(favStringData)
+
+		link, _ := s.Find("a.preview").Attr("href")
+		ids = append(ids, SearchResult{
+			ImageID:   ID(id),
+			Thumbnail: imageURL,
+			Width:     width,
+			Height:    height,
+			Favorites: favorites,
+			Link:      link,
+		})
 	}
 	doc.Find("figure.thumb").Each(f)
 
@@ -69,22 +91,68 @@ func (id ID) Details() (details *ImageDetail, err error) {
 	if err != nil {
 		return nil, errutil.Err(err)
 	}
-	tags := make([]string, 0)
+	tags := make([]Tag, 0)
+	colors := make([]Color, 0)
+	uploader := Uploader{}
 
-	f := func(i int, s *goquery.Selection) {
-		tags = append(tags, s.Text())
-	}
-	doc.Find("a.tagname").Each(f)
+	doc.Find("a.tagname").Each(func(i int, s *goquery.Selection) {
+		Purity := ""
+		parent := s.Closest("li.tag")
+
+		if parent.HasClass("tag-sfw") {
+			Purity = "SFW"
+		}
+
+		if parent.HasClass("tag-sketchy") {
+			Purity = "Sketchy"
+		}
+
+		if parent.HasClass("tag-nsfw") {
+			Purity = "NSFW"
+		}
+
+		tidS, _ := parent.Attr("data-tag-id")
+		tid, _ := strconv.Atoi(tidS)
+		link, _ := s.Attr("href")
+
+		tags = append(tags, Tag{
+			Name:   s.Text(),
+			Purity: Purity,
+			TagID:  tid,
+			Link:   link,
+		})
+	})
+
+	doc.Find("li.color").Each(func(i int, s *goquery.Selection) {
+		style, _ := s.Attr("style")
+
+		style = strings.Replace(style, "background-color:", "", 1)
+		link, _ := s.Find("a").Attr("href")
+
+		colors = append(colors, Color{
+			HEX:  style,
+			Link: link,
+		})
+	})
 
 	url, _ := doc.Find("img#wallpaper").Attr("src")
-	author := doc.Find("a.username").Text()
-	// TODO: Fix this to add the purity rating
-	// purity, _ := doc.Find("input[checked='checked'][name='purity']").Attr("value")
+	uploadedOn, _ := doc.Find("[datetime]").Attr("datetime")
+
+	uploaderInfo := doc.Find("a.username")
+	uploaderProfileImage := doc.Find("a.avatar > img")
+	pImage, _ := uploaderProfileImage.Attr("src")
+	uploader.Name = uploaderInfo.Text()
+	uploader.Profile, _ = uploaderInfo.Attr("href")
+	uploader.ProfilePicture = fmt.Sprintf("https:%s", pImage)
 
 	return &ImageDetail{
-		Tags:     tags,
-		URL:      fmt.Sprintf("https:%s", url),
-		Uploader: author,
+		Tags:       tags,
+		URL:        fmt.Sprintf("https:%s", url),
+		Uploader:   uploader,
+		UploadedOn: uploadedOn,
+		ImageID:    id,
+		Colors:     colors,
+		Link:       rawurl,
 	}, nil
 }
 
