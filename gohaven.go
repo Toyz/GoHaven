@@ -57,6 +57,32 @@ func (wh *WallHaven) Search(query string, options ...Option) (ids []SearchResult
 			return
 		}
 
+		Purity := ""
+		if s.HasClass("thumb-sfw") {
+			Purity = "sfw"
+		}
+
+		if s.HasClass("thumb-sketchy") {
+			Purity = "sketchy"
+		}
+
+		if s.HasClass("thumb-nsfw") {
+			Purity = "nsfw"
+		}
+
+		category := ""
+		if s.HasClass("thumb-anime") {
+			category = "anime"
+		}
+
+		if s.HasClass("thumb-people") {
+			category = "people"
+		}
+
+		if s.HasClass("thumb-general") {
+			category = "general"
+		}
+
 		imageURL, _ := s.Find("img").Attr("data-src")
 		thumbInfo := s.Find("div.thumb-info")
 
@@ -71,6 +97,8 @@ func (wh *WallHaven) Search(query string, options ...Option) (ids []SearchResult
 		ids = append(ids, SearchResult{
 			ImageID:   ID(id),
 			Thumbnail: imageURL,
+			Purity:    Purity,
+			Category:  category,
 			Width:     width,
 			Height:    height,
 			Favorites: favorites,
@@ -100,15 +128,15 @@ func (id ID) Details() (details *ImageDetail, err error) {
 		parent := s.Closest("li.tag")
 
 		if parent.HasClass("tag-sfw") {
-			Purity = "SFW"
+			Purity = "sfw"
 		}
 
 		if parent.HasClass("tag-sketchy") {
-			Purity = "Sketchy"
+			Purity = "sketchy"
 		}
 
 		if parent.HasClass("tag-nsfw") {
-			Purity = "NSFW"
+			Purity = "nsfw"
 		}
 
 		tidS, _ := parent.Attr("data-tag-id")

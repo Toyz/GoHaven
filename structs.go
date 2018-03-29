@@ -7,6 +7,8 @@ type WallHaven struct {
 type SearchResult struct {
 	ImageID   ID
 	Thumbnail string
+	Purity    string
+	Category  string
 	Width     int
 	Height    int
 	Favorites int
