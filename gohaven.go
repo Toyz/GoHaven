@@ -20,7 +20,7 @@ func New() *WallHaven {
 }
 
 // Search searches for wallpapers based on the given query and search options.
-func (wh *WallHaven) Search(query string, options ...Option) (ids []SearchResult, err error) {
+func (wh *WallHaven) Search(query string, options ...Option) (result *SearchInfo, err error) {
 	// Parse search options.
 	values := make(url.Values)
 	if len(query) != 0 {
@@ -30,6 +30,10 @@ func (wh *WallHaven) Search(query string, options ...Option) (ids []SearchResult
 		key := option.Key()
 		val := option.Value()
 		values.Add(key, val)
+	}
+
+	searchInfo := &SearchInfo{
+		Results: make([]SearchResult, 0),
 	}
 
 	// Send search request.
@@ -92,7 +96,7 @@ func (wh *WallHaven) Search(query string, options ...Option) (ids []SearchResult
 		favorites, _ := strconv.Atoi(favStringData)
 
 		link, _ := s.Find("a.preview").Attr("href")
-		ids = append(ids, SearchResult{
+		searchInfo.Results = append(searchInfo.Results, SearchResult{
 			ImageID:   ID(id),
 			Thumbnail: imageURL,
 			Purity:    Purity,
@@ -105,7 +109,14 @@ func (wh *WallHaven) Search(query string, options ...Option) (ids []SearchResult
 	}
 	doc.Find("figure.thumb").Each(f)
 
-	return ids, nil
+	pageString := doc.Find("header.thumb-listing-page-header").Find("h2").Text()
+	pageString = strings.Replace(pageString, "Page ", "", 1)
+	pageValues := strings.Split(pageString, " / ")
+	searchInfo.CurrentPage, _ = strconv.Atoi(strings.TrimSpace(pageValues[0]))
+	searchInfo.TotalPages, _ = strconv.Atoi(strings.TrimSpace(pageValues[1]))
+	searchInfo.End = searchInfo.CurrentPage == searchInfo.TotalPages
+
+	return searchInfo, nil
 }
 
 // ID represents the wallpaper ID of a specific wallpaper on wallhaven.cc.

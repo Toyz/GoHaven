@@ -4,6 +4,13 @@ type WallHaven struct {
 	// TODO: Add jar info here
 }
 
+type SearchInfo struct {
+	CurrentPage int
+	TotalPages  int
+	End         bool
+	Results     []SearchResult
+}
+
 type SearchResult struct {
 	ImageID   ID
 	Thumbnail string
@@ -13,6 +20,10 @@ type SearchResult struct {
 	Height    int
 	Favorites int
 	Link      string
+}
+
+type SearchRelation struct {
+	Details string
 }
 
 type Color struct {
