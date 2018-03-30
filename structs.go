@@ -24,6 +24,7 @@ type SearchResult struct {
 
 type Color struct {
 	HEX  string
+	RGB  string
 	Link string
 }
 

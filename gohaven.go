@@ -165,9 +165,11 @@ func (id ID) Details() (details *ImageDetail, err error) {
 
 		style = strings.Replace(style, "background-color:", "", 1)
 		link, _ := s.Find("a").Attr("href")
+		r, g, b := HexToRGB(style)
 
 		colors = append(colors, Color{
 			HEX:  style,
+			RGB:  fmt.Sprintf("%s,%s,%s", strconv.Itoa(r), strconv.Itoa(g), strconv.Itoa(b)),
 			Link: link,
 		})
 	})
