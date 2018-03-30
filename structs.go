@@ -22,10 +22,6 @@ type SearchResult struct {
 	Link      string
 }
 
-type SearchRelation struct {
-	Details string
-}
-
 type Color struct {
 	HEX  string
 	Link string
