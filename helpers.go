@@ -7,7 +7,6 @@ import (
 )
 
 func HexToRGB(hex string) (int, int, int) {
-
 	if strings.HasPrefix(hex, "#") {
 		hex = strings.Replace(hex, "#", "", 1)
 	}

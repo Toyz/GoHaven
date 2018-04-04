@@ -40,6 +40,8 @@ func (wh *WallHaven) Search(query string, options ...Option) (result *SearchInfo
 	rawquery := values.Encode()
 	rawurl := "https://alpha.wallhaven.cc/search?" + rawquery
 	doc, err := goquery.NewDocument(rawurl)
+	fmt.Println(rawurl)
+	
 	if err != nil {
 		return nil, errutil.Err(err)
 	}

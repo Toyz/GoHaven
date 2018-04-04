@@ -282,6 +282,8 @@ const (
 	Ratio21x9
 	Ratio32x9
 	Ratio48x9
+	Ratio9x16
+	Ratio10x16
 )
 
 // String returns a string representation of the search option.
@@ -294,6 +296,8 @@ func (v Ratios) String() string {
 		Ratio21x9:  "21x9",
 		Ratio32x9:  "32x9",
 		Ratio48x9:  "48x9",
+		Ratio9x16:  "9x16",
+		Ratio10x16: "10x16",
 	}
 	var names []string
 	for mask := Ratio4x3; mask <= Ratio48x9; mask <<= 1 {
@@ -323,6 +327,8 @@ func (v *Ratios) Set(s string) error {
 		"21x9":  Ratio21x9,
 		"32x9":  Ratio32x9,
 		"48x9":  Ratio48x9,
+		"9x16":  Ratio9x16,
+		"10x16": Ratio10x16,
 	}
 	names := strings.Split(s, ",")
 	for _, name := range names {
