@@ -300,7 +300,7 @@ func (v Ratios) String() string {
 		Ratio10x16: "10x16",
 	}
 	var names []string
-	for mask := Ratio4x3; mask <= Ratio48x9; mask <<= 1 {
+	for mask := Ratio4x3; mask <= Ratio10x16; mask <<= 1 {
 		if v&mask != 0 {
 			name := ratioNames[mask]
 			names = append(names, name)
