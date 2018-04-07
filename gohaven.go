@@ -2,6 +2,7 @@ package GoHaven
 
 import (
 	"fmt"
+    "io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -40,8 +41,7 @@ func (wh *WallHaven) Search(query string, options ...Option) (result *SearchInfo
 	rawquery := values.Encode()
 	rawurl := "https://alpha.wallhaven.cc/search?" + rawquery
 	doc, err := goquery.NewDocument(rawurl)
-	fmt.Println(rawurl)
-	
+
 	if err != nil {
 		return nil, errutil.Err(err)
 	}
@@ -195,6 +195,30 @@ func (id ID) Details() (details *ImageDetail, err error) {
 		Colors:     colors,
 		Link:       rawurl,
 	}, nil
+}
+
+func (detail *ImageDetail) GetImageBuffer() (io.ReadCloser, error) {
+	resp, err := http.Get(detail.URL)
+	if err != nil {
+		return nil, errutil.Err(err)
+	}
+	return resp.Body, nil
+}
+
+func (detail *ImageDetail) ReadAll() (buf []byte, err error) {
+	resp, err := http.Get(detail.URL)
+	if err != nil {
+		return nil, errutil.Err(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, errutil.Newf("invalid status code; expected %d, got %d", http.StatusOK, resp.StatusCode)
+	}
+	buf, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errutil.Err(err)
+	}
+	return
 }
 
 func (detail *ImageDetail) Download(dir string) (p string, err error) {
