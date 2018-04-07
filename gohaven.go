@@ -2,7 +2,7 @@ package GoHaven
 
 import (
 	"fmt"
-    "io"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
