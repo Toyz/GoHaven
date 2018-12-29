@@ -179,6 +179,32 @@ func (id ID) Details() (details *ImageDetail, err error) {
 	url, _ := doc.Find("img#wallpaper").Attr("src")
 	uploadedOn, _ := doc.Find("[datetime]").Attr("datetime")
 
+	var gallery string
+	var views int
+	var favorites int
+
+	doc.Find("div[data-storage-id='showcase-info'] > dl").Children().Each(func(i int, s *goquery.Selection) {
+		if s.Is("dt") {
+			title := s.Text()
+			if title == "Category" {
+				gallery = s.Next().Text()
+				return
+			}
+
+			if title == "Views" {
+				v := s.Next().Text()
+				views, _ = strconv.Atoi(strings.Replace(v, ",", "", -1))
+				return
+			}
+
+			if title == "Favorites" {
+				v := s.Next().Text()
+				favorites, _ = strconv.Atoi(strings.Replace(v, ",", "", -1))
+				return
+			}
+		}
+	})
+
 	uploaderInfo := doc.Find("a.username")
 	uploaderProfileImage := doc.Find("a.avatar > img")
 	pImage, _ := uploaderProfileImage.Attr("src")
@@ -189,6 +215,9 @@ func (id ID) Details() (details *ImageDetail, err error) {
 	return &ImageDetail{
 		Tags:       tags,
 		URL:        fmt.Sprintf("https:%s", url),
+		Views:      views,
+		Category:   gallery,
+		Favorites:  favorites,
 		Uploader:   uploader,
 		UploadedOn: uploadedOn,
 		ImageID:    id,
