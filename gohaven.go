@@ -114,10 +114,15 @@ func (wh *WallHaven) Search(query string, options ...Option) (result *SearchInfo
 	pageString := doc.Find("header.thumb-listing-page-header").Find("h2").Text()
 	pageString = strings.Replace(pageString, "Page ", "", 1)
 	pageValues := strings.Split(pageString, " / ")
-	searchInfo.CurrentPage, _ = strconv.Atoi(strings.TrimSpace(pageValues[0]))
-	searchInfo.TotalPages, _ = strconv.Atoi(strings.TrimSpace(pageValues[1]))
-	searchInfo.End = searchInfo.CurrentPage == searchInfo.TotalPages
+	if len(pageValues) > 1 {
+		searchInfo.CurrentPage, _ = strconv.Atoi(strings.TrimSpace(pageValues[0]))
+		searchInfo.TotalPages, _ = strconv.Atoi(strings.TrimSpace(pageValues[1]))
+	} else {
+		searchInfo.CurrentPage = 1
+		searchInfo.TotalPages = 1
+	}
 
+	searchInfo.End = searchInfo.CurrentPage == searchInfo.TotalPages
 	return searchInfo, nil
 }
 
@@ -179,10 +184,31 @@ func (id ID) Details() (details *ImageDetail, err error) {
 	url, _ := doc.Find("img#wallpaper").Attr("src")
 	uploadedOn, _ := doc.Find("[datetime]").Attr("datetime")
 
+	var purtity string
+	/*
+		data := doc.Find("#wallpaper-purity-form input[checked]")
+		data = data.Prev()
+
+		n := data.Get(0) // Retrieves the internal *html.Node
+		for _, a := range n.Attr {
+			fmt.Printf("%s=%s\n", a.Key, a.Val)
+		}
+
+		log.Println(data.Parent().Attr("class"))
+		log.Println(data.Parent().Attr("id"))
+	*/
+	doc.Find("#wallpaper-purity-form").Children().Each(func(i int, s *goquery.Selection) {
+		if s.Is("label") {
+			radio := s.Next()
+			if radio.Is("[checked]") {
+				log.Println(s.Text())
+			}
+		}
+	})
+
 	var gallery string
 	var views int
 	var favorites int
-
 	doc.Find("div[data-storage-id='showcase-info'] > dl").Children().Each(func(i int, s *goquery.Selection) {
 		if s.Is("dt") {
 			title := s.Text()
@@ -217,6 +243,7 @@ func (id ID) Details() (details *ImageDetail, err error) {
 		URL:        fmt.Sprintf("https:%s", url),
 		Views:      views,
 		Category:   gallery,
+		Purity:     purtity,
 		Favorites:  favorites,
 		Uploader:   uploader,
 		UploadedOn: uploadedOn,

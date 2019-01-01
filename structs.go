@@ -46,6 +46,7 @@ type ImageDetail struct {
 	URL        string
 	UploadedOn string `json:,omitempty`
 	Category   string
+	Purity     string
 	Views      int
 	Favorites  int
 	Link       string
