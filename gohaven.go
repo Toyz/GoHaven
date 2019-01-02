@@ -20,27 +20,12 @@ func New() *WallHaven {
 	return &WallHaven{}
 }
 
-// Search searches for wallpapers based on the given query and search options.
-func (wh *WallHaven) Search(query string, options ...Option) (result *SearchInfo, err error) {
-	// Parse search options.
-	values := make(url.Values)
-	if len(query) != 0 {
-		values.Add("q", query)
-	}
-	for _, option := range options {
-		key := option.Key()
-		val := option.Value()
-		values.Add(key, val)
-	}
-
+func (wh *WallHaven) processHTML(url string) (results *SearchInfo, err error) {
 	searchInfo := &SearchInfo{
 		Results: make([]SearchResult, 0),
 	}
 
-	// Send search request.
-	rawquery := values.Encode()
-	rawurl := "https://alpha.wallhaven.cc/search?" + rawquery
-	doc, err := goquery.NewDocument(rawurl)
+	doc, err := goquery.NewDocument(url)
 
 	if err != nil {
 		return nil, errutil.Err(err)
@@ -124,6 +109,46 @@ func (wh *WallHaven) Search(query string, options ...Option) (result *SearchInfo
 
 	searchInfo.End = searchInfo.CurrentPage == searchInfo.TotalPages
 	return searchInfo, nil
+}
+
+// Search searches for wallpapers based on the given query and search options.
+func (wh *WallHaven) Search(query string, options ...Option) (result *SearchInfo, err error) {
+	// Parse search options.
+	values := make(url.Values)
+	if len(query) != 0 {
+		values.Add("q", query)
+	}
+	for _, option := range options {
+		key := option.Key()
+		val := option.Value()
+		values.Add(key, val)
+	}
+
+	// Send search request.
+	rawquery := values.Encode()
+	rawurl := "https://alpha.wallhaven.cc/search?" + rawquery
+
+	return wh.processHTML(rawurl)
+}
+
+func (wh *WallHaven) UserUploads(user string, options ...Option) (result *SearchInfo, err error) {
+	values := make(url.Values)
+
+	for _, option := range options {
+		if option.Key() == "purity" {
+			key := option.Key()
+			val := option.Value()
+			values.Add(key, val)
+		}
+
+		if option.Key() == "page" {
+			key := option.Key()
+			val := option.Value()
+			values.Add(key, val)
+		}
+	}
+
+	return wh.processHTML(fmt.Sprintf("https://alpha.wallhaven.cc/user/%s/uploads?%s", user, values.Encode()))
 }
 
 // ID represents the wallpaper ID of a specific wallpaper on wallhaven.cc.
